@@ -12,15 +12,15 @@ import (
     "os"
     "io"
     "os/exec"
-//    "gopkg.in/telegram-bot-api.v4"
+    "gopkg.in/telegram-bot-api.v4"
 )
 
 type (
 
     Config struct {
-        botId      string
-        audioPath  string
-        imagesPath string
+        BotId      string
+        AudioPath  string
+        ImagesPath string
     }
 
     Bird struct {
@@ -107,7 +107,7 @@ func (bird *Bird) GetSong() bool {
     if bird.songFile != "" {
         return true
     } else {
-        path := concat(conf.audioPath, bird.sysName(""), ".ogg")
+        path := concat(conf.AudioPath, bird.sysName(""), ".ogg")
         if _, err := os.Stat(path); err == nil {
             bird.songFile = path
             return true
@@ -122,7 +122,7 @@ func (bird *Bird) GetSong() bool {
                 }
                 defer resp.Body.Close()
                 if resp.Header.Get("Content-Type") == "audio/mpeg" {
-                    out, err := os.Create(concat(conf.audioPath, name))
+                    out, err := os.Create(concat(conf.AudioPath, name))
                     if err != nil {
                         fmt.Printf("Error: %s\n", err)
                         return false
@@ -133,13 +133,13 @@ func (bird *Bird) GetSong() bool {
                         return false
                     }
                     out.Close()
-                    cmd := exec.Command("avconv", "-i", concat(conf.audioPath, name), "-acodec", "libvorbis", "-aq", "5", path)
+                    cmd := exec.Command("avconv", "-i", concat(conf.AudioPath, name), "-acodec", "libvorbis", "-aq", "5", path)
                     err = cmd.Run()
                     if err != nil {
                         fmt.Printf("Error: %s\n", err)
                         return false
                     }
-                    os.Remove(concat(conf.audioPath, name))
+                    os.Remove(concat(conf.AudioPath, name))
                     bird.songFile = path
                     return true
                 } else {
@@ -187,7 +187,7 @@ func (bird *Bird) getImage() bool {
     if bird.imageFile != "" {
         return true
     } else {
-        path := concat(conf.imagesPath, bird.sysName(""), ".jpg")
+        path := concat(conf.ImagesPath, bird.sysName(""), ".jpg")
         if _, err := os.Stat(path); err == nil {
             bird.imageFile = path
             return true
@@ -244,6 +244,7 @@ func init(){
     if (err != nil) {
         panic(err)
     }
+    defer file.Close()
     decoder := json.NewDecoder(file)
     err = decoder.Decode(&conf)
     if err != nil {
@@ -253,7 +254,7 @@ func init(){
 
 func main() {
     birds = getList()
-    bot, err := tgbotapi.NewBotAPI(conf.botId)
+    bot, err := tgbotapi.NewBotAPI(conf.BotId)
     if err != nil {
         panic(err)
     }
