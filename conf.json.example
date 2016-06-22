@@ -1,0 +1,6 @@
+{
+  "botId": "TELEGRAM_BOT_ID",
+  "audioPath": "path to audio cache",
+  "imagesPath": "path to images cache"
+}
+
