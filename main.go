@@ -11,7 +11,6 @@ import (
     "regexp"
     "os"
     "io"
-    "os/exec"
     "gopkg.in/telegram-bot-api.v4"
 )
 
@@ -107,7 +106,7 @@ func (bird *Bird) GetSong() bool {
     if bird.songFile != "" {
         return true
     } else {
-        path := concat(conf.AudioPath, bird.sysName(""), ".ogg")
+        path := concat(conf.AudioPath, bird.sysName(""), ".mp3")
         if _, err := os.Stat(path); err == nil {
             bird.songFile = path
             return true
@@ -122,7 +121,7 @@ func (bird *Bird) GetSong() bool {
                 }
                 defer resp.Body.Close()
                 if resp.Header.Get("Content-Type") == "audio/mpeg" {
-                    out, err := os.Create(concat(conf.AudioPath, name))
+                    out, err := os.Create(path)
                     if err != nil {
                         fmt.Printf("Error: %s\n", err)
                         return false
@@ -133,13 +132,6 @@ func (bird *Bird) GetSong() bool {
                         return false
                     }
                     out.Close()
-                    cmd := exec.Command("avconv", "-i", concat(conf.AudioPath, name), "-acodec", "libvorbis", "-aq", "5", path)
-                    err = cmd.Run()
-                    if err != nil {
-                        fmt.Printf("Error: %s\n", err)
-                        return false
-                    }
-                    os.Remove(concat(conf.AudioPath, name))
                     bird.songFile = path
                     return true
                 } else {
@@ -258,12 +250,15 @@ func main() {
     if err != nil {
         panic(err)
     }
+    fmt.Println("Authorized on account", bot.Self.UserName)
     u := tgbotapi.NewUpdate(0)
     u.Timeout = 60
     updates, _ := bot.GetUpdatesChan(u)
     for update := range updates {
         bird, found := birds.getBird(update.Message.Text)
+        fmt.Println("Request:", update.Message.Text)
         if found {
+            fmt.Println("Found:", bird.name, bird.id)
             if bird.getImage() {
                 msg := tgbotapi.NewPhotoUpload(update.Message.Chat.ID, bird.imageFile)
                 bot.Send(msg)
@@ -274,7 +269,7 @@ func main() {
             }
 
             if bird.GetSong() {
-                msg := tgbotapi.NewAudioUpload(update.Message.Chat.ID, bird.songFile)
+                msg := tgbotapi.NewVoiceUpload(update.Message.Chat.ID, bird.songFile)
                 bot.Send(msg)
             }
         } else {
