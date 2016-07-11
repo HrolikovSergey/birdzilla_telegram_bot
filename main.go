@@ -250,9 +250,8 @@ func getHelpText() string {
 
        Available commands:
                /help - this information
-               /list - show the list of all available birds for this bot
-
        `
+    ///list - show the list of all available birds for this bot
 }
 
 func init(){
