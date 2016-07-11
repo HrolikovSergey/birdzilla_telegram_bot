@@ -241,6 +241,19 @@ func (birds *Birds) getBird(request string) (Bird, bool) {
     return Bird{}, false
 }
 
+func getHelpText() string {
+    return `
+       Description:
+               Some wiki about wild birds. You can find your bird, how it looks and how it sounds.
+               Enjoy!
+       Developed by [Onix Systems](https://onix-systems.com)
+
+       Available commands:
+               /help - this information
+       `
+    ///list - show the list of all available birds for this bot
+}
+
 func init(){
     file, err := os.Open("conf.json")
     if (err != nil) {
@@ -264,7 +277,23 @@ func main() {
     u := tgbotapi.NewUpdate(0)
     u.Timeout = 60
     updates, _ := bot.GetUpdatesChan(u)
+    var cmd string = ""
     for update := range updates {
+        // if the incoming message is command
+        // process it appropriate
+        if (update.Message.IsCommand()) {
+            cmd = update.Message.Command()
+            switch cmd {
+                case "start", "help":
+                    msg := tgbotapi.NewMessage(update.Message.Chat.ID, getHelpText())
+                    msg.ParseMode = "Markdown"
+                    bot.Send(msg)
+                case "list":
+                default:
+            }
+            continue
+        }
+        // try to get bird's info
         bird, found := birds.getBird(update.Message.Text)
         fmt.Println("Request:", update.Message.Text)
         if found {
