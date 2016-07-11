@@ -12,6 +12,7 @@ import (
     "os"
     "io"
     "gopkg.in/telegram-bot-api.v4"
+    "github.com/arbovm/levenshtein"
 )
 
 type (
@@ -227,6 +228,15 @@ func (birds *Birds) getBird(request string) (Bird, bool) {
                 return bird, true
             }
         }
+        minDistance := 999
+        found := Bird{}
+        for _, bird := range *birds {
+            if minDistance > levenshtein.Distance(bird.sysName(""), bird.sysName(request)){
+                found = bird
+                minDistance = levenshtein.Distance(bird.sysName(""), bird.sysName(request))
+            }
+        }
+        return found, true
     }
     return Bird{}, false
 }
